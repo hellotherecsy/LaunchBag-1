@@ -1,0 +1,15 @@
+---
+# This playbook uses the win_ping module to test connectivity to Windows hosts
+- hosts: all
+  vars_files:
+   - inventories/group_vars/main.yml
+  tasks:
+    - lineinfile:
+        path: "{{ token_file_path }}"
+        regexp: "^http"
+        state: absent
+
+    - lineinfile:
+        path: "{{ token_file_path }}"
+        line: "http://{{ hostvars['rancher']['ansible_ssh_host'] }}:{{ jupyter_port }}"
+        create: yes

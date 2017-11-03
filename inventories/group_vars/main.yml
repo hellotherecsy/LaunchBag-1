@@ -1,0 +1,15 @@
+---
+
+rancher_name: rancher_server
+rancher_server: "{{ hostvars['rancher']['ansible_ssh_host'] }}"
+rancher_version: v1.6.10
+rancher_port: 8080
+rancher_agent_name: "agent"
+
+docker_users: "freepsw.01"
+
+# launchbag-datascience config
+container_name: "launchbag-datascience"
+token_file_path: "~/token.txt"
+script_file_path: "~/jupyter/"
+jupyter_port: "8888"

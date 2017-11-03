@@ -1,0 +1,81 @@
+---
+# Run jupyter notebook for data science
+- name: Install the curl command for rancher api
+  yum:
+   name: curl
+   state: present
+
+- name: Save launchbag-datascience json contents to variable
+  set_fact:
+    json_contenst: "{{ lookup('template', 'templates/launchbag-datascience.json.j2') }}"
+#    json_contenst: "{{ lookup('file','templates/launchbag-datascience.json') }}"
+
+- name : Run launchbag services using curl command (uri 모듈로 변경 필요)
+  shell: "{{ json_contenst }}"
+  register: out_shell
+
+# - name: Print output of curl command
+#   debug:
+#     msg: "{{ out_shell }}"
+
+# Env 설정 : container image 이름 (하나의 서버에 여러개의 container 구동 가능한 상황)
+- name: Find container id of launchbag-datascience
+  shell: docker ps | grep {{ container_name}} | awk '{ print $1}'
+  register: container_id
+  until: container_id.stdout != ""
+  retries: 30
+  delay: 10
+
+- name: Print Jupyter notebook logs
+  debug:
+    var: container_id
+
+- name: Wait for the jupyter notebook server to start
+  command: docker logs {{ container_id.stdout }}
+  register: jupyter_logs
+  until: jupyter_logs.stdout.find("The Jupyter Notebook is running") != -1
+  retries: 30
+  delay: 10
+
+# 현재 버전은 token 없이 jupyter notebook이 실행되도록 설정함. (따라서 아래의 task는 불필요)
+# - name: Print Jupyter notebook logs
+#   debug:
+#     var: jupyter_logs
+#
+# - name: Find jupyter notebok token and save to variable
+#   set_fact:
+#     token_str: "{{ jupyter_logs.stdout | regex_search('[_a-zA-Z0-9-]{48}')}}"
+
+# - name: Print extracted token
+#   debug:
+#     var: token_str
+
+- name: Delete existing url address
+  lineinfile:
+    path: "{{ token_file_path }}"
+    regexp: "^http"
+    state: absent
+
+# Env설정 : 저장 path
+- name: Save jupyter-notebook token to file (token.txt)
+  lineinfile:
+    path: "{{ token_file_path }}"
+    line: "http://{{ hostvars['rancher']['ansible_ssh_host'] }}:{{ jupyter_port }}"
+    create: yes
+
+
+- name: Get the datascience service-id
+  action: uri
+      method=GET
+      status_code=200
+      url="http://{{ rancher_server }}:{{ rancher_port }}/v2-beta/services" return_content=yes
+  register: service_id
+
+
+#- name: Copy python/r script and data set to server
+#  copy:
+#    src: "{{ item }}"
+#    dest: "{{ script_file_path }}"
+#    force: no
+#  with_fileglob:
+#        - "data/datascience/*.*"
