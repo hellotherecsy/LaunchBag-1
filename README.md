@@ -15,6 +15,11 @@
 > ansible-playbook -i inventories/hosts rancher.yml
 ```
 
+### LaunchBag Service Architecture
+![service architecture](https://github.com/freepsw/LaunchBag/blob/master/images/launchbag-install.png)
+- 사용자의 click 한번으로 필요한 모든 설정을 자동화하고 배포
+
+
 ### 01. 웹서버 접속
 - Rancher 서버 접속 : http://rancher-server-ip:8080
 - LaunchBag 웹서버 접속 : http://launchbag-ip:8090
@@ -31,6 +36,11 @@
 - 분석을 위해 필요한 시스템 설정(system library 및 R/python packages 등)이 완료된 환경 제공
 - 모든 분석환경이 구셩된 jupyter notebook(python3 + R)을 빠르게 생성하여, 지연없이 분석환경 구성 가능
 - 분석가는 해당 URL에 접근하여 분석업무 수행!
+
+### LaunchBag 서비스 배포 구성
+![service architecture](https://github.com/freepsw/LaunchBag/blob/master/images/launchbag-service.png)
+- ansible-playbook script로 서비스 배포에 필요한 설정 및 api 접속 완료
+- 실제 서비스는 Rancher를 이용하여 구동 (서비스 안정성 및 확장을 위함)
 
 ### 01. Connect to LaunchBag Web page
 - LaunhBag 서버에 접속하여, 어떤 서비스를 실행 할 것인지 선택한다.
