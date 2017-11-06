@@ -38,3 +38,49 @@
    -H 'Content-Type: application/json'
    -d '{}'
    "{{ elk_activate }}"
+
+- name: Check elasticsearch server
+  action: uri
+      method=GET
+      status_code=200
+      url="http://{{ rancher_server}}:9200" return_content=yes
+  register: elasticsearch_result
+  until: elasticsearch_result.status == 200
+  retries: 10
+  delay: 10
+
+- name: Print output of curl command
+  debug:
+    msg: "{{ elasticsearch_result }}"
+
+
+- name: Copy python/r script and data set to server
+  copy:
+   src: "{{ item }}"
+   dest: "{{ elk_file_path }}"
+   force: no
+  with_fileglob:
+       - "data/elk/*.*"
+
+
+# - name : Create elasticsearch index (ba_realtime)
+#   shell: >
+#     curl
+#     -X PUT
+#     -H 'Content-Type: application/json'
+#     -d '{}'
+#     '{{ rancher_server }}:9200/ba_realtime3?pretty'
+
+
+- name: Run Data generator
+  shell: python ./data_generator.py </dev/null >/dev/null 2>&1
+  async: 600
+  poll: 0
+
+- name: Create kibana index pattern (ba_realtime)
+  shell: >
+    curl
+    -X PUT
+    -H 'Content-Type: application/json'
+    -d '{"title" : "ba_realtime", "timeFieldName": "@timestamp"}}'
+    '{{ rancher_server }}:9200//.kibana/index-pattern/ba_realtime'
