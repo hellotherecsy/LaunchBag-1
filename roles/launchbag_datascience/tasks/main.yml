@@ -72,6 +72,10 @@
   register: service_id
 
 
+- name: Print Finish message
+  debug:
+    msg: "Completed process"
+
 #- name: Copy python/r script and data set to server
 #  copy:
 #    src: "{{ item }}"

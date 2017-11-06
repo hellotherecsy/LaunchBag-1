@@ -74,7 +74,7 @@
 
 - name: Run Data generator
   shell: python ./data_generator.py </dev/null >/dev/null 2>&1
-  async: 600
+  async: 5
   poll: 0
 
 - name: Create kibana index pattern (ba_realtime)
@@ -82,5 +82,13 @@
     curl
     -X PUT
     -H 'Content-Type: application/json'
-    -d '{"title" : "ba_realtime", "timeFieldName": "@timestamp"}}'
-    '{{ rancher_server }}:9200//.kibana/index-pattern/ba_realtime'
+    -d '{"title" : "ba_realtime", "timeFieldName": "@timestamp"}'
+    'http://{{ rancher_server }}:9200/.kibana/index-pattern/ba_realtime'
+
+- name: Import kibana dashboard
+  shell: python load_kibana_objects.py export.json 'http://{{ rancher_server }}:9200'
+
+- name: Run Data generator again
+  shell: python ./data_generator.py </dev/null >/dev/null 2>&1
+  async: 100
+  poll: 0
