@@ -1,0 +1,21 @@
+---
+
+- name: Add Unix Admins users
+  user: name={{ item }} group=users groups=launchbag
+  with_items:
+    - launchbag
+
+- name: Make sure we have a 'launchbag' group
+  group:
+    name: launchbag
+    state=present
+
+- name: Allow 'launchbag' group to have passwordless sudo
+  lineinfile:
+  dest=/etc/sudoers
+  state: present
+  regexp='^%launchbag'
+  line: '%launchbag ALL=(ALL) NOPASSWD: ALL'
+
+- name: Add sudoers users to launchbag group
+  user: name=deployer groups=launchbag append=yes state=present createhome=yes

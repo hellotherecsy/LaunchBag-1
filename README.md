@@ -68,7 +68,7 @@
 
 #### 내부 명령어 (LaunchBag Web Server에서 실행하는 명령)
 ```
-> ansible-playbook -i inventories/hosts launchbag_datascience.yml -e "container_name=launchbag-datascience2"
+> ansible-playbook -i inventories/hosts launchbag_datascience.yml -e "container_name=launchbag-datascience2 jupyter_port=8888"
 
 # ansible 내부적으로는 아래의 명령어를 Rancher API로 변환하여 호출한다.
 > docker run -it -p 8888:8888 -e GRANT_SUDO=yes  --user root  --name launchbag-datascience  freepsw/launchbag-juypter-r:v0.1.1  start-notebook.sh --NotebookApp.token=''
@@ -82,10 +82,17 @@
 'http://<ip>:8080/v2-beta/projects/1a5/stacks'
 ```
 
-## 03. Jupyter notebook 접속 및 분석업무 시작!
+### 03. Jupyter notebook 접속 및 분석업무 시작!
 - LaunchBag UI에서 사용자가 클릭할 수 있는 URL Link 제공 : http://jupyter-server-ip:8888
 - token 없이 접속할 수 있도록 설정
 
+
+
+## [STEP 3] LaunchBag ELK stacks
+
+```
+> docker run -it --rm logstash -e 'input { stdin { } } output { stdout { elasticsearch { hosts => "http://elasticsearch:9200"} }'
+```
 
 ## [ ETC ]
 ### 01.  R package 설치오류 해결
@@ -223,6 +230,24 @@ Use "conda info <package>" to see the dependencies for each package.
   }
 ```
 
+
+- HTTP Request
+```
+HTTP/1.1 POST /v2-beta/projects/1a5/stacks
+Host: 169.56.88.43:8080
+Accept: application/json
+Content-Type: application/json
+Content-Length: 1788
+
+{
+"name": "launchbag-elk",
+"system": false,
+"dockerCompose": "{    \"version\": \"2\",    \"services\": {       \"logstash\": {          \"image\": \"docker.elastic.co/logstash/logstash:5.6.3\",          \"stdin_open\": true,          \"volumes\": [             \"/home/rts:/usr/share/logstash/pipeline/\"          ],          \"tty\": true,          \"links\": [             \"elastic:elastic\"          ],          \"command\": [             \"logstash\",             \"-f\",             \"/usr/share/logstash/pipeline/logstash.conf\"          ],          \"labels\": {             \"io.rancher.container.pull_image\": \"always\"          }       },       \"elastic\": {          \"image\": \"docker.elastic.co/elasticsearch/elasticsearch:5.6.3\",          \"environment\": {             \"xpack.security.enabled\": \"false\"          },          \"stdin_open\": true,          \"tty\": true,          \"ports\": [             \"9200:9200/tcp\",             \"9300:9300/tcp\"          ],          \"labels\": {             \"io.rancher.container.pull_image\": \"always\"          }       },       \"kibana\": {          \"image\": \"kibana\",          \"stdin_open\": true,          \"tty\": true,          \"links\": [             \"elastic:elasticsearch\"          ],          \"ports\": [             \"5601:5601/tcp\"          ],          \"labels\": {             \"io.rancher.container.pull_image\": \"always\"          }       }    } }",
+"rancherCompose": "{    \"version\": \"2\",    \"services\": {       \"logstash\": {          \"scale\": 1,          \"start_on_create\": true       },       \"elastic\": {          \"scale\": 1,          \"start_on_create\": true       },       \"kibana\": {          \"scale\": 1,          \"start_on_create\": true       }    } }",
+"binding": null
+}
+
+```
 
 - 참고 mmacpherson/datascience-notebook
   * https://github.com/mmacpherson/datascience-notebook/blob/master/Dockerfile

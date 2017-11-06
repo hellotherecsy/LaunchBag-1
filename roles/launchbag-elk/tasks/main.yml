@@ -1,0 +1,40 @@
+---
+# Run elk-stack for data science
+- name: Install the curl command for rancher api
+  yum:
+   name: curl
+   state: present
+
+- name: Save launchbag-datascience json contents to variable
+  set_fact:
+    json_contenst: "{{ lookup('template', 'templates/launchbag-elk.json.j2') }}"
+#    json_contenst: "{{ lookup('file','templates/launchbag-datascience.json') }}"
+
+- name : Run launchbag services using curl command (uri 모듈로 변경 필요)
+  shell: "{{ json_contenst }}"
+  register: out_shell
+
+- name : set shell result to json format
+  set_fact:
+    elk_result: "{{ out_shell.stdout|from_json }}"
+
+# - name: Print output of curl command
+#   debug:
+#     msg: "{{ elk_result }}"
+
+# - name: Print output of curl command
+#   debug:
+#     msg: "{{ elk_result['actions']['activateservices'] }}"
+
+- name : set stack id
+  set_fact:
+    elk_activate: "{{ elk_result['actions']['activateservices'] }}"
+
+- name : Activate elk service
+  shell: >
+   curl -u "BAF2FFEB1637F9A4F735:pitwPkiXLDYQnQrJWDo618q2REVnxVuNZ2AM2Bq2"
+   -X POST
+   -H 'Accept: application/json'
+   -H 'Content-Type: application/json'
+   -d '{}'
+   "{{ elk_activate }}"

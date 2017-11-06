@@ -1,0 +1,6 @@
+curl -u "${CATTLE_ACCESS_KEY}:${CATTLE_SECRET_KEY}" \
+-X POST \
+-H 'Accept: application/json' \
+-H 'Content-Type: application/json' \
+-d '{}' \
+'http://169.56.88.43:8080/v2-beta/projects/1a5/stacks/1st18/?action=activateservices'

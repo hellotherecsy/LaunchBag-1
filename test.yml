@@ -4,12 +4,21 @@
   vars_files:
    - inventories/group_vars/main.yml
   tasks:
-    - lineinfile:
-        path: "{{ token_file_path }}"
-        regexp: "^http"
-        state: absent
+    # - lineinfile:
+    #     path: "{{ token_file_path }}"
+    #     regexp: "^http"
+    #     state: absent
+    #
+    # - lineinfile:
+    #     path: "{{ token_file_path }}"
+    #     line: "http://{{ hostvars['rancher']['ansible_ssh_host'] }}:{{ jupyter_port }}"
+    #     create: yes
 
-    - lineinfile:
-        path: "{{ token_file_path }}"
-        line: "http://{{ hostvars['rancher']['ansible_ssh_host'] }}:{{ jupyter_port }}"
-        create: yes
+    - user:
+        name={{ item }}
+        groups=docker
+        state=present
+        append=yes
+      with_items: "{{ docker_users }}"
+      when: docker_users is defined
+      become: yes

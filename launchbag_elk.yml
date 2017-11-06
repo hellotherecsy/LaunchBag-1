@@ -1,0 +1,9 @@
+---
+
+
+- name: Run rancher Service
+  hosts: "Rancher"
+  vars_files:
+   - inventories/group_vars/main.yml
+  roles:
+   - { role: launchbag-elk, tags: ["launchbag-elk"] }
